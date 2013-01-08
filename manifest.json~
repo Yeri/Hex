@@ -1,0 +1,11 @@
+{
+	"name": "Game",
+	"description": "Drawing Hexagon Board.",
+	"version": "0.1",
+	"manifest_version": 2
+	"app": {
+		"background": {
+			"scripts": ["window.js"]
+		}
+	}
+}

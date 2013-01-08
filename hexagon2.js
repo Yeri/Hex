@@ -1,0 +1,104 @@
+var hex;
+var xOffset = 500;
+var yOffset = 100;
+
+var xyCoordinates = function(x, y) {
+  this.x = x;
+  this.y = y;
+}
+
+var hexCoordinates = function(horizontal, vertical) {
+  this.horizontal = horizontal;
+  this.vertical = vertical;
+}
+
+var HEXINFO = function(edgeLength) {
+	this.l = edgeLength;
+  this.horizontal = edgeLength * Math.sin(Math.PI/6);
+  this.r = edgeLength * Math.cos(Math.PI/6);
+  this.height = 2 * this.r;
+  this.width = 2 * edgeLength;
+  this.narrowWidth  = this.l + this.horizontal;
+}
+
+// store information of hexagon tiles
+// center column is the vertical axis of gridCoordinates
+var Hex = function(edgeLength) { 
+  this.l = edgeLength;
+  this.horizontal = edgeLength * Math.sin(Math.PI/6);
+  this.r = edgeLength * Math.cos(Math.PI/6);
+  this.height = 2 * this.r;
+  this.width = 2 * edgeLength;
+  this.narrowWidth  = this.l + this.horizontal;
+/*	
+  this.getXYCoordinates = function(horizontal, vertical) {
+  	if (horizontal >= 0) {	
+  		return new xyCoordinates(this.narrowWidth * horizontal, 
+																	this.height * (horizontal / 2 + vertical));
+		} else {
+  		return new xyCoordinates(this.narrowWidth * horizontal, 
+															 this.height * (horizontal / 2 + vertical 
+															 + Math.abs(horizontal)));
+		}
+	};
+*/
+  this.getXYCoordinates = function(horizontal, vertical) { 
+  	if (horizontal >= Math.floor(9 / 2)) {	// 9 comes from the number of columns
+  		return new xyCoordinates(this.narrowWidth * horizontal, 
+																	this.height * (horizontal / 2 + vertical));
+		} else {
+  		return new xyCoordinates(this.narrowWidth * horizontal, 
+															 this.height * (horizontal / 2 + vertical 
+															 + Math.abs(horizontal - Math.floor(9 / 2))));
+		}
+	};	
+}
+
+// drawing a hexagon tile in clockwise
+var drawHex = function(ctx, hexCoordinates) { 
+	var center = hex.getXYCoordinates(hexCoordinates.horizontal, hexCoordinates.vertical);
+	
+	ctx.moveTo((center.x - hex.width / 2) + xOffset, center.y + yOffset );
+	ctx.lineTo((center.x - hex.l / 2) + xOffset, (center.y - hex.height / 2) + yOffset);
+	ctx.lineTo((center.x + hex.l / 2) + xOffset, (center.y - hex.height / 2) + yOffset);
+	ctx.lineTo((center.x + hex.width / 2) + xOffset, center.y + yOffset);
+	ctx.lineTo((center.x + hex.l / 2) + xOffset, (center.y + hex.height / 2) + yOffset);
+	ctx.lineTo((center.x - hex.l / 2) + xOffset, (center.y + hex.height / 2) + yOffset);
+	ctx.lineTo((center.x - hex.width / 2) + xOffset, center.y + yOffset);
+	ctx.lineWidth = 2;
+	ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+	ctx.fillText("(" + hexCoordinates.horizontal + "," + hexCoordinates.vertical + ")", 
+								center.x + xOffset, center.y + yOffset );
+}
+
+// drawing a hexagon board, 
+// center of vertical axis is a center column
+var drawHexGrid = function(ctx, numColumns) { 
+	ctx.beginPath();
+
+	for (var i = -Math.floor(numColumns / 2); i <= 0; i++) {
+		if (i != 0) { // draw columns except a center column
+			for (var j = 0; j < numColumns + i; j++) { 
+					// the number of tiles in the center column = the number of columns
+				drawHex(ctx, new hexCoordinates(i, j));
+				drawHex(ctx, new hexCoordinates(-i,j));
+			}
+		} else { // draw the center column
+			for (var j = 0; j < numColumns + i; j++) { 
+					// the number of tiles in the center column = the number of columns
+				drawHex(ctx, new hexCoordinates(i, j)); 
+			}			
+		}
+	}
+	
+	ctx.stroke();
+}
+
+// call the JavaScript
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+
+hex = new Hex(35);
+ctx.clearRect(0, 0, 800, 600);
+drawHexGrid(ctx, 9);
