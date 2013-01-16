@@ -155,3 +155,99 @@ function drawHexGrid(ctx, numColumns) {
 }
 */
 
+/*
+var rAF = window.webkitRequestAnimationFrame;
+var cAF = window.webkitCancelRequestAnimatinoFrame;
+var fps = 60;
+var interval = 1000 / fps;
+var xSpeed;
+var ySpeed;
+var aniTime;
+var from;
+var to;
+var lastTime;
+var timeLimit;
+var path; // set up path in searchPath() before calling drawPath();
+var orbColor; // set up in searchPath() before calling drawPath();
+var startTime;  // set up start time in searchPath() before calling drawPath()!
+var dt = 0;
+
+var drawOrb = function(center) {
+  ctx.beginPath();
+	ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
+	ctx.fillStyle = orbColor;
+	ctx.fill();
+	ctx.stroke();
+}
+
+function drawPath(now) {
+
+	if (from !== undefined) { // initialize condition everytime
+		xSpeed = Grid.COL_WIDTH * (path.length - 1) / interval;
+		ySpeed = Grid.ROW_HEIGHT * (path.length - 1) / interval;
+		timeLimit = 500 * (path.length - 1);
+		lastTime = null;
+		from = path.pop();
+		to = path.pop();		
+	}
+
+	if (from.x === to.x && from.y === to.y) {
+		if (path.length > 0) {
+			from = to;
+			to = path.pop();
+		} else if (path.length === 0) {
+			cAF(rAF); // stop this loop
+		}
+		
+	}
+
+	switch (from.isAdjacent()) {
+		case "top":
+			if (from.y > to.y) {
+				from.y -= ySpeed * dt;
+			}	
+			break;
+		case "rightTop":
+			if (from.x < to.x && from.y > to.y) {
+				from.x += xSpeed * dt;
+				from.y -= ySpeed * dt;
+			}
+			break;
+		case "rightBottom":
+			if (from.x < to.x && from.y < to.y) {
+				from.x += xSpeed * dt;
+				from.y += ySpeed * dt;	
+			}
+			break;
+		case "bottom":
+			if (from.y < to.y) {
+				from.y += ySpeed * dt;
+			}
+			break;
+		case "leftBottom":
+			if (from.x > to.col && from.y < to.y) {
+				from.x -= xSpeed * dt;
+				from.y += ySpeed * dt;
+			}
+			break;
+		case "leftTop":
+			if (from.x > to.x && from.y > to.y) {
+				from.x -= xSpeed * dt;
+				from.y -= ySpeed * dt;
+			} 
+			break;		
+		default:
+	}
+	drawOrb(from);
+
+  aniTime += dt;  
+  if (aniTime < timeLimit) {
+    requestAnimationFrame(drawPath);
+		dt = new Date().getTime() - lastTime;
+		lastTime = now();
+  } else {
+		from = undefined;
+		cAF(raF);
+	}
+}
+*/
