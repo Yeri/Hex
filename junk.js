@@ -251,3 +251,165 @@ function drawPath(now) {
 	}
 }
 */
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var rAF = window.webkitRequestAnimationFrame;
+var cAF = window.webkitCancelRequestAnimatinoFrame;
+var interval = 1000 / 60; // sec / fps
+var xSpeed; 
+var ySpeed;
+var aniTime; 
+var from; // pixel coordinate of previous orb's position 
+var current; // pixel coordinate of current orb's position
+var to; // pixel coordinate of next orb's position
+var lastTime; 
+var timeLimit; // time limit for path displaying 
+var route; // set up path in searchPath() before calling drawPath();
+var orbColor; // set up in searchPath() before calling drawPath();
+var dt = 0;
+
+getGridPos = function(pixel) {
+  return new GridCoordinate(Math.floor((pixel.x - Grid.X_OFFSET) / 
+														Grid.COL_WIDTH) - Math.floor(Grid.NUM_COLUMNS/2), 
+														Math.floor(pixel.y / Grid.ROW_HEIGHT - 
+														(game.board.boardSize * 2 - 2)));
+}
+
+var update = function () {  
+//	console.log(lastTime);
+  if (aniTime < timeLimit) {
+		now = new Date().getTime(); 
+//		console.log("now: " + now);
+//		console.log("before dt: " + dt);
+		if (lastTime === null) {
+			dt = now - now;
+		} else {
+			dt = now - lastTime;
+		}
+//		console.log("after dt: " + dt);
+//		console.log("lastTime: " + lastTime);
+		lastTime = now;
+//		console.log("after lastTime: " + lastTime);
+  	aniTime += dt;
+  } else {
+		from = undefined;
+		//cAF(rAF);
+	}
+}
+
+var findNextFramePos = function () {
+	
+	console.log("current: ");
+	console.log(getGridPos(current));
+/*	console.log("to: "); 
+	console.log(to.gridCoordinate);
+	console.log("dt: ");
+	console.log(dt);
+	console.log(ySpeed);
+	console.log(Grid.ROW_HEIGHT);
+  console.log(Grid.COL_WIDTH);
+	*/
+	if (from === undefined) {
+		return;
+	}
+/*
+	console.log("from: ");
+	console.log(from);
+	console.log("to: ");
+	console.log(to);
+*/
+	switch (from.isAdjacent(to)) { 
+		case "top":
+			if (current.y > to.center.y) {
+				//console.log("I'm in top");
+				current.y -= ySpeed * dt;
+			}	
+			break;
+		case "rightTop":
+			if (current.x < to.center.x && current.y > to.center.y) {
+				current.x += xSpeed * dt;
+				current.y -= ySpeed * dt;
+			}
+			break;
+		case "rightBottom":
+			if (current.x < to.center.x && current.y < to.center.y) {
+				current.x += xSpeed * dt;
+				current.y += ySpeed * dt;	
+			}
+			break;
+		case "bottom":
+			if (current.y < to.center.y) {
+				console.log("I'm in bottom ", ySpeed * dt);
+				current.y += ySpeed * dt;
+			}
+			break;
+		case "leftBottom":
+			if (current.x > to.center.col && current.y < to.center.y) {
+				current.x -= xSpeed * dt;
+				current.y += ySpeed * dt;
+			}
+			break;
+		case "leftTop":
+			if (current.x > to.center.x && current.y > to.center.y) {
+				current.x -= xSpeed * dt;
+				current.y -= ySpeed * dt;
+			} 
+			break;		
+		default:
+	}
+	
+	console.log("updated current: ");
+	console.log(getGridPos(current));
+	
+}
+
+var drawOrb = function(center) {
+	if (from === undefined) {
+		return;
+	}
+  ctx.beginPath();
+	ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
+	ctx.fillStyle = orbColor;
+	ctx.fill();
+	ctx.stroke();
+}
+
+function drawPath(now) {
+
+	if (route.length > 0) {
+		rAF(drawPath);
+	}
+
+	if (from === undefined) { // initialize condition everytime
+		xSpeed = Grid.COL_WIDTH * (route.length - 1) / interval;
+		ySpeed = 2 * Grid.ROW_HEIGHT * (route.length - 1) / interval;
+		timeLimit = 500 * (route.length);
+		lastTime = null;
+		aniTime = 0;
+		from = route.pop(); // start position
+		current= new Pixel(from.center.x, from.center.y);
+		console.log(getGridPos(current));
+		orbColor = from.orb;
+		to = route.pop();	
+	}
+	var i = 0;
+//	console.log(to);
+	if (current.x === to.center.x && current.y === to.center.y) { // error --> to : undefined  why? 
+		console.log(i);											// ??? possible error: what happens if from pass over to
+		if (route.length > 0) {
+			from = to;
+			to = route.pop();
+			console.log("from");
+			console.log(from);
+			console.log("to");
+			console.log(to);
+		} 
+	}
+
+	update();
+	findNextFramePos();
+	drawOrb(from);  
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130117
