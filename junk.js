@@ -411,5 +411,185 @@ function drawPath(now) {
 	findNextFramePos();
 	drawOrb(from);  
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130117
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var rAF = window.webkitRequestAnimationFrame;
+var cAF = window.webkitCancelRequestAnimatinoFrame;
+var interval; 
+var xSpeed; 
+var ySpeed;
+var aniTime; 
+var from; // pixel coordinate of previous orb's position 
+var current; // pixel coordinate of current orb's position
+var to; // pixel coordinate of next orb's position
+var lastTime; 
+var timeLimit; // time limit for path displaying 
+var route; // set up path in searchPath() before calling drawPath();
+var routeDistance;
+var orbColor; // set up in searchPath() before calling drawPath();
+var dt;
+
+// temporary function for testing
+getGridPos = function(pixel) {
+  return new GridCoordinate((pixel.x - Grid.X_OFFSET) / 
+														Grid.COL_WIDTH - Grid.NUM_COLUMNS/2, 
+														pixel.y / Grid.ROW_HEIGHT - 
+														(game.board.boardSize * 2 - 2));
+}
+
+var drawGame = function() {
+  game.board.draw(); 
+  drawNewOrbs();
+	game.score.displayScore();
+}
+
+var findNextFramePos = function () {
+	if (from === undefined) {
+		return;
+	}
+	switch (from.isAdjacent(to)) { 
+		case "top":
+			if (current.y > to.center.y) {
+				current.y -= ySpeed * dt;
+			} 
+			if (current.y <= to.center.y) {
+				current = from.center;
+			}	
+			break;
+		case "rightTop":
+			if (current.x < to.center.x && current.y > to.center.y) {
+				current.x += xSpeed * dt;
+				current.y -= ySpeed * dt;
+			} 
+			if (current.x >= to.center.x) {
+				current.x = from.center.x;
+			}
+			if (current.y <= to.center.y) {
+				current.y = from.center.y;
+			}
+			break;
+		case "rightBottom":
+			if (current.x < to.center.x && current.y < to.center.y) {
+				current.x += xSpeed * dt;
+				current.y += ySpeed * dt;	
+			} 
+			if (current.x >= to.center.x) {
+				current.x = from.center.x;
+			}
+			if (current.y >= to.center.y) {
+				current.y = from.center.y;
+			}
+			break;
+		case "bottom":
+			if (current.y < to.center.y) {
+				current.y += ySpeed * dt;
+			} 
+			if (current.y >= to.center.y) {
+				current = from.center;
+			}
+			break;
+		case "leftBottom":
+			if (current.x > to.center.col && current.y < to.center.y) {
+				current.x -= xSpeed * dt;
+				current.y += ySpeed * dt;
+			} 
+			if (current.x <= to.center.x) {
+				current.x = from.center.x;
+			}
+			if (current.y >= to.center.y) {
+				current.y = from.center.y;
+			}
+			break;
+		case "leftTop":
+			if (current.x > to.center.x && current.y > to.center.y) {
+				current.x -= xSpeed * dt;
+				current.y -= ySpeed * dt;
+			} 
+			if (current.x <= to.center.x) {
+				current.x = from.center.x;
+			} 
+			if (current.y <= to.center.y) {
+				current.y = from.center.y;
+			}
+			break;		
+		default:
+	}
+}
+
+
+var update = function () {  
+  if (aniTime < timeLimit) {
+		now = new Date().getTime(); 
+		if (lastTime === null) {
+			dt = now - now;
+		} else {
+			dt = now - lastTime;
+		}
+		lastTime = now;
+  	aniTime += dt;
+  } else {
+		from = undefined;
+	}
+}
+
+
+var drawOrb = function(center) {
+
+  ctx.beginPath();
+	ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
+	ctx.fillStyle = orbColor;
+	ctx.fill();
+	ctx.stroke();
+
+}
+
+function drawPath(now) {
+ 	ctx.save();
+	if (route.length > 0) {
+		rAF(drawPath);
+	}
+
+	if (from === undefined) { // initialize condition everytime
+		console.log("I'm not intended to occur more than once!");
+		routeDistance = route.length;
+		timeLimit = 1000; // 1 seconds
+		lastTime = null;
+		aniTime = 0;
+		from = route.pop(); // start position
+		current= new Pixel(from.center.x, from.center.y);
+		orbColor = from.orb;
+		to = route.pop();
+		xSpeed = Math.abs(to.center.x - from.center.x) / (timeLimit / routeDistance);
+		ySpeed = Math.abs(to.center.y - from.center.y) / (timeLimit / routeDistance);
+		console.log(routeDistance);
+		animating = true;
+	}
+
+	if (to !== undefined) {
+		if (current.x === to.center.x && current.y === to.center.y) { // error --> to : undefined  why?
+			if (route.length > 0) {
+				from = to;
+				to = route.pop();
+				animating = true;
+			} 
+		} 
+	} else {
+		animating = false;
+	}
+	
+		update();
+		findNextFramePos();
+		//drawGame();
+		drawOrb(current);  
+	 if (animating === false) {
+		ctx.restore();
+console.log("am I working?");
+		rAF(drawGame);
+	}
+}
+
+rAF(drawGame);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130118
+
+
