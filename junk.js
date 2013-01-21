@@ -593,3 +593,143 @@ rAF(drawGame);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130118
 
 
+var animating = false;
+var current;
+var from = null;
+var to;
+var aniTime;
+var timeLimit = 1000;
+var orbColor;
+var route = [];
+var dist;
+// temporary function for testing
+getGridPos = function(pixel) {
+  return new GridCoordinate((pixel.x - Grid.X_OFFSET) / 
+														Grid.COL_WIDTH - Grid.NUM_COLUMNS/2, 
+														pixel.y / Grid.ROW_HEIGHT - 
+														(game.board.boardSize * 2 - 2));
+}
+
+var animate = function () {
+	window.webkitRequestAnimationFrame(animate);
+update(dt)
+	draw();
+}
+
+var draw = function () {
+	if (animating === false) {
+		game.board.draw();
+		drawNewOrbs();
+		game.score.displayScore();
+		console.log("regular drawing");	
+	}	else {
+		console.log("path drawing");
+		update();
+		drawOrb(current);
+	}
+}
+
+var update = function () {  
+  if (aniTime < timeLimit) {
+		var now = new Date().getTime(); 
+		if (lastTime === null) {
+			dt = 0;
+		} else {
+			dt = now - lastTime;
+		}
+		lastTime = now;
+  	aniTime += dt;
+  } else {
+		from = null;
+		animating = false;
+	}
+	console.log("dt: ", dt);
+}
+
+var drawOrb = function(center) {
+	move();
+  ctx.beginPath();
+	ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
+	ctx.fillStyle = '#FFFFFF';
+	ctx.fill();
+	ctx.stroke();
+
+}
+
+var move = function () {
+	current = new Pixel (route[0].center.x, route[0].center.y);
+	dist = (aniTime / timeLimit) * (route.length - 1);
+	from = Math.floor(dist);
+	to = from + 1;
+	if (to < route.length) {
+		findNextFramePos();
+	} else {
+		animating = false;
+		lastTime = null;
+	}
+}
+
+var findNextFramePos = function () {
+	var rate = dist - from;
+	if (from > 0) {
+		current.x = route[from].center.x * (rate) + route[to].center.x * (1 - rate);
+		current.y = route[from].center.y * (rate) + route[to].center.y * (1 - rate);
+	}
+}
+
+animate();
+/*
+		if (current === to.center) {
+			if (route.length > 0) {
+				from = to;
+				to = route.pop();
+			} 	
+			update();
+			findNextFramePos();
+			drawOrb(current);
+		}
+		if (route.length === 0 && current === to.center) {
+			animating = false;
+			from = null;
+		}
+*/
+
+
+/*
+		if (route.length > 0) {
+			if (from === null) {
+console.log("start path");
+				lastTime = null;
+				aniTime = 0;
+				from = route.pop();
+				current = new Pixel (from.center.x, from.center.y);	
+				to = route.pop();
+				xSpeed = Math.abs(to.center.x - from.center.x) / 60;
+				ySpeed = Math.abs(to.center.y - from.center.y) / 60;	
+			}	else {
+console.log("next tile!");
+				if (current.x === to.center.x && current.y === to.center.y) {
+console.log("pop!");
+					from = to;
+					to = route.pop();
+				}
+				update();
+				findNextFramePos();
+				drawOrb(current);
+			}	
+		} else { 
+console.log("alomost finish!");
+			if (current !== to.center) {
+			//if (current.x === to.center.x && current.y === to.center.y) {
+				animating = false;
+				from = null;		
+			} else {
+				update();
+				findNextFramePos();
+				drawOrb(current);
+			}
+		}
+	}
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130113
