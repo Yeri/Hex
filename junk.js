@@ -733,3 +733,112 @@ console.log("alomost finish!");
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130113
+
+///////////////////////////////////////////////////////////////////////////////
+////////////// Setup the main game loop ///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+var animating = "regular";
+var from = null;
+var to;
+var aniTime;
+var timeLimit;
+var pathAnimOrb;
+var lastTime = null;
+var dt;
+
+var runAnim = function() {
+  window.webkitRequestAnimationFrame(runAnim);
+  update();
+	draw();
+}
+
+var draw = function() {
+  game.board.draw();
+  drawNewOrbs();
+	game.score.displayScore();
+}
+
+var update = function() {	
+
+	if (lastTime === null) {  //first time update is called
+		dt = 0;
+	} else {
+	  var now = new Date().getTime(); 
+		dt = now - lastTime;
+	}
+	lastTime = now;
+	aniTime += dt;
+
+	switch (animating) {
+		case "path":  
+		  if(aniTime <= timeLimit) {  //check if you are still displaying path
+		  	pathAnimOrb.setCenter(getPosForNextFrame(aniTime));
+		  } else {
+		    endPathAnim();
+			}
+			break;
+		case "remove":
+			if(aniTime <= timeLimit) { //check if you are still displaying removing orbs
+			  //call the function that shrinks the orbs
+			} else {
+			  endRemoveAnim(); 
+			}
+			break;
+		case "newOrb": 
+			// all the function to give effect when place new orbs on the board
+			break;
+		default:
+	}
+}
+
+var startPathAnim = function(orb, route) {
+	animating = "path";
+	aniTime = 0;
+	timeLimit = (route.length - 1) * 300;
+	pathAnimOrb = orb;
+}
+
+var endPathAnim = function() {
+  from = null;
+  game.destinationHex.orb.center = game.destinationHex.center;
+  pathAnimOrb = null;
+  var toBeRemoved = removeOrbs(game.destinationHex);
+  if(toBeRemoved.length > 0) {
+		animating = "remove";
+    startRemoveAnim(toBeRemoved, scoreToAdd);
+  } else {
+		animating = "newOrb";
+    newOrbs();
+  }
+}
+
+var getPosForNextFrame = function(aniTime) {
+	var curr = new Pixel(null, null);
+	var dist = (aniTime / timeLimit) * (route.length - 1);
+
+	from = Math.floor(dist);  //hex index for current starting position
+	to = from + 1;
+	if (to < route.length) {
+		var rate = dist - from;
+	  if (from >= 0) {
+		  curr.x = route[from].center.x * (1 - rate) + route[to].center.x * rate;
+		  curr.y = route[from].center.y * (1 - rate) + route[to].center.y * rate;
+	  }
+	}
+	return curr;
+}
+
+var startRemoveAnim = function(orbs, score) {
+  animating = "remove";
+	aniTime = 0;
+	timeLimit = 1000;
+  removeAnimOrbs = orbs;
+  removeScore = score
+}
+
+var endRemoveAnim = function() {
+  animating = "regular";
+  deleteRemovedOrbs(removeAnimOrbs);  
+}
+
+runAnim();
