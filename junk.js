@@ -130,610 +130,7 @@ var drawHexGrid = function(ctx, numColumns) {
 	};
 */
 
-/*
-// drawing a hexagone board
-// center of vertical axis = left most column
-function drawHexGrid(ctx, numColumns) { 
-
-	ctx.beginPath();
-
-	for (var i = 0; i < Math.ceil(numColumns / 2); i++) {
-		if (i < Math.floor(numColumns / 2)) { // draw columns except a center column
-			for (var j = 0; j < Math.ceil(numColumns / 2) + i; j++) { 
-													// Math.ceil(numColumns / 2) = the number of tiles in border lines
-				drawHex(ctx, new hexCoordinates(i, j));
-				drawHex(ctx, new hexCoordinates((numColumns-1)-i,j));
-			}
-		} else { // draw the center column
-			for (var j = 0; j < Math.ceil(numColumns / 2) + i; j++) {
-				drawHex(ctx, new hexCoordinates(i, j)); 
-			}			
-		}
-	}
-	
-	ctx.stroke();
-}
-*/
-
-/*
-var rAF = window.webkitRequestAnimationFrame;
-var cAF = window.webkitCancelRequestAnimatinoFrame;
-var fps = 60;
-var interval = 1000 / fps;
-var xSpeed;
-var ySpeed;
-var aniTime;
-var from;
-var to;
-var lastTime;
-var timeLimit;
-var path; // set up path in searchPath() before calling drawPath();
-var orbColor; // set up in searchPath() before calling drawPath();
-var startTime;  // set up start time in searchPath() before calling drawPath()!
-var dt = 0;
-
-var drawOrb = function(center) {
-  ctx.beginPath();
-	ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
-	ctx.fillStyle = orbColor;
-	ctx.fill();
-	ctx.stroke();
-}
-
-function drawPath(now) {
-
-	if (from !== undefined) { // initialize condition everytime
-		xSpeed = Grid.COL_WIDTH * (path.length - 1) / interval;
-		ySpeed = Grid.ROW_HEIGHT * (path.length - 1) / interval;
-		timeLimit = 500 * (path.length - 1);
-		lastTime = null;
-		from = path.pop();
-		to = path.pop();		
-	}
-
-	if (from.x === to.x && from.y === to.y) {
-		if (path.length > 0) {
-			from = to;
-			to = path.pop();
-		} else if (path.length === 0) {
-			cAF(rAF); // stop this loop
-		}
-		
-	}
-
-	switch (from.isAdjacent()) {
-		case "top":
-			if (from.y > to.y) {
-				from.y -= ySpeed * dt;
-			}	
-			break;
-		case "rightTop":
-			if (from.x < to.x && from.y > to.y) {
-				from.x += xSpeed * dt;
-				from.y -= ySpeed * dt;
-			}
-			break;
-		case "rightBottom":
-			if (from.x < to.x && from.y < to.y) {
-				from.x += xSpeed * dt;
-				from.y += ySpeed * dt;	
-			}
-			break;
-		case "bottom":
-			if (from.y < to.y) {
-				from.y += ySpeed * dt;
-			}
-			break;
-		case "leftBottom":
-			if (from.x > to.col && from.y < to.y) {
-				from.x -= xSpeed * dt;
-				from.y += ySpeed * dt;
-			}
-			break;
-		case "leftTop":
-			if (from.x > to.x && from.y > to.y) {
-				from.x -= xSpeed * dt;
-				from.y -= ySpeed * dt;
-			} 
-			break;		
-		default:
-	}
-	drawOrb(from);
-
-  aniTime += dt;  
-  if (aniTime < timeLimit) {
-    requestAnimationFrame(drawPath);
-		dt = new Date().getTime() - lastTime;
-		lastTime = now();
-  } else {
-		from = undefined;
-		cAF(raF);
-	}
-}
-*/
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var rAF = window.webkitRequestAnimationFrame;
-var cAF = window.webkitCancelRequestAnimatinoFrame;
-var interval = 1000 / 60; // sec / fps
-var xSpeed; 
-var ySpeed;
-var aniTime; 
-var from; // pixel coordinate of previous orb's position 
-var current; // pixel coordinate of current orb's position
-var to; // pixel coordinate of next orb's position
-var lastTime; 
-var timeLimit; // time limit for path displaying 
-var route; // set up path in searchPath() before calling drawPath();
-var orbColor; // set up in searchPath() before calling drawPath();
-var dt = 0;
-
-getGridPos = function(pixel) {
-  return new GridCoordinate(Math.floor((pixel.x - Grid.X_OFFSET) / 
-														Grid.COL_WIDTH) - Math.floor(Grid.NUM_COLUMNS/2), 
-														Math.floor(pixel.y / Grid.ROW_HEIGHT - 
-														(game.board.boardSize * 2 - 2)));
-}
-
-var update = function () {  
-//	console.log(lastTime);
-  if (aniTime < timeLimit) {
-		now = new Date().getTime(); 
-//		console.log("now: " + now);
-//		console.log("before dt: " + dt);
-		if (lastTime === null) {
-			dt = now - now;
-		} else {
-			dt = now - lastTime;
-		}
-//		console.log("after dt: " + dt);
-//		console.log("lastTime: " + lastTime);
-		lastTime = now;
-//		console.log("after lastTime: " + lastTime);
-  	aniTime += dt;
-  } else {
-		from = undefined;
-		//cAF(rAF);
-	}
-}
-
-var findNextFramePos = function () {
-	
-	console.log("current: ");
-	console.log(getGridPos(current));
-/*	console.log("to: "); 
-	console.log(to.gridCoordinate);
-	console.log("dt: ");
-	console.log(dt);
-	console.log(ySpeed);
-	console.log(Grid.ROW_HEIGHT);
-  console.log(Grid.COL_WIDTH);
-	*/
-	if (from === undefined) {
-		return;
-	}
-/*
-	console.log("from: ");
-	console.log(from);
-	console.log("to: ");
-	console.log(to);
-*/
-	switch (from.isAdjacent(to)) { 
-		case "top":
-			if (current.y > to.center.y) {
-				//console.log("I'm in top");
-				current.y -= ySpeed * dt;
-			}	
-			break;
-		case "rightTop":
-			if (current.x < to.center.x && current.y > to.center.y) {
-				current.x += xSpeed * dt;
-				current.y -= ySpeed * dt;
-			}
-			break;
-		case "rightBottom":
-			if (current.x < to.center.x && current.y < to.center.y) {
-				current.x += xSpeed * dt;
-				current.y += ySpeed * dt;	
-			}
-			break;
-		case "bottom":
-			if (current.y < to.center.y) {
-				console.log("I'm in bottom ", ySpeed * dt);
-				current.y += ySpeed * dt;
-			}
-			break;
-		case "leftBottom":
-			if (current.x > to.center.col && current.y < to.center.y) {
-				current.x -= xSpeed * dt;
-				current.y += ySpeed * dt;
-			}
-			break;
-		case "leftTop":
-			if (current.x > to.center.x && current.y > to.center.y) {
-				current.x -= xSpeed * dt;
-				current.y -= ySpeed * dt;
-			} 
-			break;		
-		default:
-	}
-	
-	console.log("updated current: ");
-	console.log(getGridPos(current));
-	
-}
-
-var drawOrb = function(center) {
-	if (from === undefined) {
-		return;
-	}
-  ctx.beginPath();
-	ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
-	ctx.fillStyle = orbColor;
-	ctx.fill();
-	ctx.stroke();
-}
-
-function drawPath(now) {
-
-	if (route.length > 0) {
-		rAF(drawPath);
-	}
-
-	if (from === undefined) { // initialize condition everytime
-		xSpeed = Grid.COL_WIDTH * (route.length - 1) / interval;
-		ySpeed = 2 * Grid.ROW_HEIGHT * (route.length - 1) / interval;
-		timeLimit = 500 * (route.length);
-		lastTime = null;
-		aniTime = 0;
-		from = route.pop(); // start position
-		current= new Pixel(from.center.x, from.center.y);
-		console.log(getGridPos(current));
-		orbColor = from.orb;
-		to = route.pop();	
-	}
-	var i = 0;
-//	console.log(to);
-	if (current.x === to.center.x && current.y === to.center.y) { // error --> to : undefined  why? 
-		console.log(i);											// ??? possible error: what happens if from pass over to
-		if (route.length > 0) {
-			from = to;
-			to = route.pop();
-			console.log("from");
-			console.log(from);
-			console.log("to");
-			console.log(to);
-		} 
-	}
-
-	update();
-	findNextFramePos();
-	drawOrb(from);  
-}
-*/
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130117
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var rAF = window.webkitRequestAnimationFrame;
-var cAF = window.webkitCancelRequestAnimatinoFrame;
-var interval; 
-var xSpeed; 
-var ySpeed;
-var aniTime; 
-var from; // pixel coordinate of previous orb's position 
-var current; // pixel coordinate of current orb's position
-var to; // pixel coordinate of next orb's position
-var lastTime; 
-var timeLimit; // time limit for path displaying 
-var route; // set up path in searchPath() before calling drawPath();
-var routeDistance;
-var orbColor; // set up in searchPath() before calling drawPath();
-var dt;
-
-// temporary function for testing
-getGridPos = function(pixel) {
-  return new GridCoordinate((pixel.x - Grid.X_OFFSET) / 
-														Grid.COL_WIDTH - Grid.NUM_COLUMNS/2, 
-														pixel.y / Grid.ROW_HEIGHT - 
-														(game.board.boardSize * 2 - 2));
-}
-
-var drawGame = function() {
-  game.board.draw(); 
-  drawNewOrbs();
-	game.score.displayScore();
-}
-
-var findNextFramePos = function () {
-	if (from === undefined) {
-		return;
-	}
-	switch (from.isAdjacent(to)) { 
-		case "top":
-			if (current.y > to.center.y) {
-				current.y -= ySpeed * dt;
-			} 
-			if (current.y <= to.center.y) {
-				current = from.center;
-			}	
-			break;
-		case "rightTop":
-			if (current.x < to.center.x && current.y > to.center.y) {
-				current.x += xSpeed * dt;
-				current.y -= ySpeed * dt;
-			} 
-			if (current.x >= to.center.x) {
-				current.x = from.center.x;
-			}
-			if (current.y <= to.center.y) {
-				current.y = from.center.y;
-			}
-			break;
-		case "rightBottom":
-			if (current.x < to.center.x && current.y < to.center.y) {
-				current.x += xSpeed * dt;
-				current.y += ySpeed * dt;	
-			} 
-			if (current.x >= to.center.x) {
-				current.x = from.center.x;
-			}
-			if (current.y >= to.center.y) {
-				current.y = from.center.y;
-			}
-			break;
-		case "bottom":
-			if (current.y < to.center.y) {
-				current.y += ySpeed * dt;
-			} 
-			if (current.y >= to.center.y) {
-				current = from.center;
-			}
-			break;
-		case "leftBottom":
-			if (current.x > to.center.col && current.y < to.center.y) {
-				current.x -= xSpeed * dt;
-				current.y += ySpeed * dt;
-			} 
-			if (current.x <= to.center.x) {
-				current.x = from.center.x;
-			}
-			if (current.y >= to.center.y) {
-				current.y = from.center.y;
-			}
-			break;
-		case "leftTop":
-			if (current.x > to.center.x && current.y > to.center.y) {
-				current.x -= xSpeed * dt;
-				current.y -= ySpeed * dt;
-			} 
-			if (current.x <= to.center.x) {
-				current.x = from.center.x;
-			} 
-			if (current.y <= to.center.y) {
-				current.y = from.center.y;
-			}
-			break;		
-		default:
-	}
-}
-
-
-var update = function () {  
-  if (aniTime < timeLimit) {
-		now = new Date().getTime(); 
-		if (lastTime === null) {
-			dt = now - now;
-		} else {
-			dt = now - lastTime;
-		}
-		lastTime = now;
-  	aniTime += dt;
-  } else {
-		from = undefined;
-	}
-}
-
-
-var drawOrb = function(center) {
-
-  ctx.beginPath();
-	ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
-	ctx.fillStyle = orbColor;
-	ctx.fill();
-	ctx.stroke();
-
-}
-
-function drawPath(now) {
- 	ctx.save();
-	if (route.length > 0) {
-		rAF(drawPath);
-	}
-
-	if (from === undefined) { // initialize condition everytime
-		console.log("I'm not intended to occur more than once!");
-		routeDistance = route.length;
-		timeLimit = 1000; // 1 seconds
-		lastTime = null;
-		aniTime = 0;
-		from = route.pop(); // start position
-		current= new Pixel(from.center.x, from.center.y);
-		orbColor = from.orb;
-		to = route.pop();
-		xSpeed = Math.abs(to.center.x - from.center.x) / (timeLimit / routeDistance);
-		ySpeed = Math.abs(to.center.y - from.center.y) / (timeLimit / routeDistance);
-		console.log(routeDistance);
-		animating = true;
-	}
-
-	if (to !== undefined) {
-		if (current.x === to.center.x && current.y === to.center.y) { // error --> to : undefined  why?
-			if (route.length > 0) {
-				from = to;
-				to = route.pop();
-				animating = true;
-			} 
-		} 
-	} else {
-		animating = false;
-	}
-	
-		update();
-		findNextFramePos();
-		//drawGame();
-		drawOrb(current);  
-	 if (animating === false) {
-		ctx.restore();
-console.log("am I working?");
-		rAF(drawGame);
-	}
-}
-
-rAF(drawGame);
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130118
-
-
-var animating = false;
-var current;
-var from = null;
-var to;
-var aniTime;
-var timeLimit = 1000;
-var orbColor;
-var route = [];
-var dist;
-// temporary function for testing
-getGridPos = function(pixel) {
-  return new GridCoordinate((pixel.x - Grid.X_OFFSET) / 
-														Grid.COL_WIDTH - Grid.NUM_COLUMNS/2, 
-														pixel.y / Grid.ROW_HEIGHT - 
-														(game.board.boardSize * 2 - 2));
-}
-
-var animate = function () {
-	window.webkitRequestAnimationFrame(animate);
-update(dt)
-	draw();
-}
-
-var draw = function () {
-	if (animating === false) {
-		game.board.draw();
-		drawNewOrbs();
-		game.score.displayScore();
-		console.log("regular drawing");	
-	}	else {
-		console.log("path drawing");
-		update();
-		drawOrb(current);
-	}
-}
-
-var update = function () {  
-  if (aniTime < timeLimit) {
-		var now = new Date().getTime(); 
-		if (lastTime === null) {
-			dt = 0;
-		} else {
-			dt = now - lastTime;
-		}
-		lastTime = now;
-  	aniTime += dt;
-  } else {
-		from = null;
-		animating = false;
-	}
-	console.log("dt: ", dt);
-}
-
-var drawOrb = function(center) {
-	move();
-  ctx.beginPath();
-	ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
-	ctx.fillStyle = '#FFFFFF';
-	ctx.fill();
-	ctx.stroke();
-
-}
-
-var move = function () {
-	current = new Pixel (route[0].center.x, route[0].center.y);
-	dist = (aniTime / timeLimit) * (route.length - 1);
-	from = Math.floor(dist);
-	to = from + 1;
-	if (to < route.length) {
-		findNextFramePos();
-	} else {
-		animating = false;
-		lastTime = null;
-	}
-}
-
-var findNextFramePos = function () {
-	var rate = dist - from;
-	if (from > 0) {
-		current.x = route[from].center.x * (rate) + route[to].center.x * (1 - rate);
-		current.y = route[from].center.y * (rate) + route[to].center.y * (1 - rate);
-	}
-}
-
-animate();
-/*
-		if (current === to.center) {
-			if (route.length > 0) {
-				from = to;
-				to = route.pop();
-			} 	
-			update();
-			findNextFramePos();
-			drawOrb(current);
-		}
-		if (route.length === 0 && current === to.center) {
-			animating = false;
-			from = null;
-		}
-*/
-
-
-/*
-		if (route.length > 0) {
-			if (from === null) {
-console.log("start path");
-				lastTime = null;
-				aniTime = 0;
-				from = route.pop();
-				current = new Pixel (from.center.x, from.center.y);	
-				to = route.pop();
-				xSpeed = Math.abs(to.center.x - from.center.x) / 60;
-				ySpeed = Math.abs(to.center.y - from.center.y) / 60;	
-			}	else {
-console.log("next tile!");
-				if (current.x === to.center.x && current.y === to.center.y) {
-console.log("pop!");
-					from = to;
-					to = route.pop();
-				}
-				update();
-				findNextFramePos();
-				drawOrb(current);
-			}	
-		} else { 
-console.log("alomost finish!");
-			if (current !== to.center) {
-			//if (current.x === to.center.x && current.y === to.center.y) {
-				animating = false;
-				from = null;		
-			} else {
-				update();
-				findNextFramePos();
-				drawOrb(current);
-			}
-		}
-	}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////20130113
-
 ///////////////////////////////////////////////////////////////////////////////
 ////////////// Setup the main game loop ///////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -842,3 +239,261 @@ var endRemoveAnim = function() {
 }
 
 runAnim();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////20130131
+#slider {
+	text-align: center;
+	position: relative;
+	left: ;
+	bottom: 100%;
+}
+
+label, a {
+	color: teal;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+label:hover, a:hover {
+	color: #000 !important;
+}
+
+/** { -webkit-box-sizing: border-box;}*/
+
+label, #active, img { -webkit-user-select:none; }
+.catch { display: block; height: 0; overflow: hidden; }
+
+#slider {
+	margin: 0 auto;
+}
+
+/* NEW EXPERIMENT */
+/* Slider Setup */
+
+input {
+	display: none;
+}
+
+#localRanking:checked ~ #slides .inner { margin-left:0; }
+#globalRanking:checked ~ #slides .inner { margin-left:-100%; }
+#instruction:checked ~ #slides .inner { margin-left:200%; }
+#setting:checked ~ #slides .inner { margin-left:-300%; }
+
+#overflow {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+article img {
+	width: 100%;
+}
+
+#slides .inner {
+	width: 100%;
+	height: 100%;
+	line-height: 0;
+}
+
+#slides article {
+	width: 20%;
+	float: left;
+}
+
+/* Slider Styling */
+
+/* Control Setup */
+
+#controls {
+	margin: -25% 0 0 0;
+	width: 100%;
+	height: 50px;
+	position: relative;
+	top: -600px;
+}
+
+#controls label { 
+	display: none;
+	width: 50px;
+	height: 50px;
+	opacity: 0.3;
+}
+
+#active {
+	margin: 23% 0 0;
+	text-align: center;
+	position: relative;
+	top: -700px;
+	left: 33.25%;
+}
+
+#active label {
+	-webkit-border-radius: 5px;
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	background: #bbb;
+}
+
+#active label:hover {
+	background: #ccc;
+	border-color: #777 !important;
+}
+
+#controls label:hover {
+	opacity: 0.8;
+}
+
+#localRanking:checked ~ #controls label:nth-child(2), 
+#globalRanking:checked ~ #controls label:nth-child(3), 
+#instruction:checked ~ #controls label:nth-child(4), 
+#setting:checked ~ #controls label:nth-child(1) {
+	background: url('next.png') no-repeat;
+	float: right;
+	margin: 0 -70px 0 0;
+	display: block;
+}
+
+
+#localRanking:checked ~ #controls label:nth-child(4),
+#globalRanking:checked ~ #controls label:nth-child(1),
+#instruction:checked ~ #controls label:nth-child(2),
+#setting:checked ~ #controls label:nth-child(3) {
+	background: url('prev.png') no-repeat;
+	float: left;
+	margin: 0 0 0 -70px;
+	display: block;
+}
+
+#localRanking:checked ~ #active label:nth-child(1),
+#globalRanking:checked ~ #active label:nth-child(2),
+#instruction:checked ~ #active label:nth-child(3),
+#setting:checked ~ #active label:nth-child(4) {
+	background: #333;
+	border-color: #333 !important;
+}
+
+/* Info Box */
+
+.info {
+	line-height: 20px;
+	margin: 0 0 -150%;
+	position: absolute;
+	font-style: italic;
+	padding: 30px 30px;
+	opacity: 0;
+	color: #000;
+	text-align: left;
+}
+
+.info h3 {
+	color: #333;
+	margin: 0 0 5px;
+	font-weight: normal;
+	font-size: 22px;
+	font-style: normal;
+}
+
+/* Slider Styling */
+
+#slides {
+	margin: 45px 0 0;
+	-webkit-border-radius: 5px;
+	box-shadow: 1px 1px 4px #666;
+	position: relative;
+	top: -700px;
+	left: 67.5%/*700px*/;
+	padding: 1%;
+	width: 30%;
+	height: 50%; /* why % doesn't work??*/
+	background: -webkit-linear-gradient(top,  rgba(252,255,244,1) 0%,rgba(219,218,201,1) 100%);
+}
+
+
+/* Animation */
+
+#slides .inner {
+	-webkit-transform: translateZ(0);
+	-webkit-transition: all 800ms cubic-bezier(0.770, 0.000, 0.175, 1.000); 
+	-webkit-transition-timing-function: cubic-bezier(0.770, 0.000, 0.175, 1.000); 
+}
+
+#slider {
+	-webkit-transform: translateZ(0);
+	-webkit-transition: all 0.5s ease-out;
+}
+
+#controls label{
+	-webkit-transform: translateZ(0);
+	-webkit-transition: opacity 0.2s ease-out;
+}
+
+#localRanking:checked ~ #slides article:nth-child(1) .info,
+#globalRanking:checked ~ #slides article:nth-child(2) .info,
+#instruction:checked ~ #slides article:nth-child(3) .info,
+#setting:checked ~ #slides article:nth-child(4) .info {
+	opacity: 1;
+	-webkit-transition: all 1s ease-out 0.6s;
+}
+
+.info, #controls, #slides, #active, #active label, .info h3 {
+	-webkit-transform: translateZ(0);
+	-webkit-transition: all 0.5s ease-out;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	<article id = slider>
+		<!-- slider setup -->
+		<input checked type = radio name = slider id = localRanking selected = "false"/>
+		<input type = radio name = slider id = globalRanking selected = "false"/>
+		<input type = radio name = slider id = instruction selected = "false"/>
+		<input type = radio name = slider id = setting selected = "false"/>
+
+		<!-- the slider -->
+		<div id = slides>
+			<div id = overflow>
+				<div class = inner>
+					<article>
+						<div class = info>
+							<h3>Local High Score</h3>
+							<img src = "help.png" /> 					
+						</div>
+					</article>
+					<article>
+						<div class = info>
+							<h3>Global High Score</h3>
+							<img src = "restart.png" />
+						</div>
+					</article>
+					<article>
+						<div id = info>
+							<h3>Instruction</h3>
+							<img src = "instruction.png" />
+						</div>
+					</article>
+					<article>
+						<div class = info>
+							<h3>Setting</h3>
+							<img src = "setting.png" />
+						</div>
+					</article>
+				</div> <!-- inner -->
+			</div> <!-- overflow -->
+		</div> <!-- slides -->
+	
+		<!-- controls and active slide display -->
+		<div id = controls>
+			<label for = localRanking></label>
+			<label for = globalRanking></label>
+			<label for = instruction></label>
+			<label for = setting></label>	
+		</div>
+	
+		<div id = active>
+			<label for = localRanking></label>
+			<label for = globalRanking></label>
+			<label for = instruction></label>
+			<label for = setting></label>
+		</div>
+
+	</article>
