@@ -239,53 +239,122 @@ var endRemoveAnim = function() {
 }
 
 runAnim();
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////20130131
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	<article id = slider>
+		<!-- menu setup -->
+		<input checked type = radio name = slider id = localRanking />
+		<input type = radio name = slider id = globalRanking />
+		<input type = radio name = slider id = instruction />
+		<input type = radio name = slider id = setting />
+
+		<!-- the slider -->
+		<div id = slides>
+			<div id = overflow>
+				<div class = inner>
+					<article>
+						<div class = info>
+							<h3>Local High Score</h3>
+							<p> A: 1234 </p>
+							<p> A: 1234 </p>
+							<p> A: 1234 </p>
+						</div>	
+					</article>
+					<article>
+						<div class = info>
+							<h3>Global High Score</h3>
+							<p> B: 12345 </p>
+							<p> B: 12345 </p>
+							<p> B: 12345 </p>
+						</div>												
+					</article>
+					<article>
+						<div class = info>
+							<h3>How to play</h3>
+							<p>
+							To move orb, click the orb first, then click the destination hexagon 
+							which has a path from the selected orb. After each turn you take, 
+							if you didn't match a line of orbs this turn, 3 new orbs that are 
+							showing in the top left hand corner will be randomly placed around the board.
+							<br><br>
+							Your goal is to create lines of minimum 5 orbs of the same colour, 
+							which will make those orbs disappear, thus clearing space on the board. 
+							You score points for each line of orbs you match, and bonus points
+						 	are awarded for making lines longer than 5, or matching more than one line at once.
+							<br>
+							<h4>Speacial Orbs</h4>
+							<ul>
+								<li>Wilds (White orbs with a 'W') <br> 
+								These can match with any colour of orb.<br>
+								</li>								
+								<li>Exploders (Orbs with an 'E') <br> 
+								These orbs are activated by using them in a line of matching coloured orbs. 
+								When the line is matched, all the orbs neighboring the Exploder 
+								will disappear.<br>
+								</li>								
+								<li>Destroyers (Orbs with a 'D') <br> 
+								These orbs are activated by using them in a line of matching coloured orbs. 
+								When the line is matched, all other orbs on the board that are 
+								the same colour as the Destroyer will disappear.
+								</li>
+							</ul>
+							</p>
+						</div>						
+					</article>
+					<article>
+						<div class = info>
+							<h3>Setting</h3>
+							<br>
+								<p>Difficulty:</p> 
+								<p>Easy <input type="Range" min="0" max="2" id="difficulty"/>  Hard</p>
+								<p>Board Size: <input type="number" min="5" max="9" step="2" value="5" id="size"></p> 
+								<p>Minimum Number of Orbs to Remove:</p>
+								<p><input type="number" name="minOrbsToRemove" min="3" value="5" id="minRemove"/> </p>
+								<!-- set max = board size in js-->							
+								<p>Number of Orb's Color:</p> 
+								<p><input type="number" name="NumColors" min="5" max="10" value="5" id="numColor"/></p>
+								<p>Display Next Orbs: </p>
+								<p>On <input type="Range" min ="0" max ="1" value ="0" id ="nextOrb"/> Off </p>
+								<p>Animation:</p>
+								<p>On <input type="Range" min="0" max="1" value="0" id="aniEffect" /> On </p>
+								<br><br>
+							<input type="button" value="New Game" id="restart" />
+						</div>											
+					</article>
+				</div> <!-- inner -->
+			</div> <!-- overflow -->
+		</div> <!-- slides -->
+	
+		<!-- active slide display -->
+		<div id = active>
+			<label for = localRanking><img src = "ranking.png"></label>
+			<label for = globalRanking><img src = "worldRanking.png"></label>
+			<label for = instruction><img src = "instruction.png"></label>
+			<label for = setting><img src = "setting.png"></label>
+			<!--<label for = restart><img src = "restart.png"></label>-->
+		</div>
+	</article>
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #slider {
 	text-align: center;
 	position: relative;
-	left: ;
-	bottom: 100%;
-}
-
-label, a {
-	color: teal;
-	cursor: pointer;
-	text-decoration: none;
-}
-
-label:hover, a:hover {
-	color: #000 !important;
-}
-
-/** { -webkit-box-sizing: border-box;}*/
-
-label, #active, img { -webkit-user-select:none; }
-.catch { display: block; height: 0; overflow: hidden; }
-
-#slider {
+	top: -700px;
 	margin: 0 auto;
+	width: 300px;
+	height: 700px;
+	left: 650px;
 }
 
-/* NEW EXPERIMENT */
-/* Slider Setup */
-
-input {
-	display: none;
-}
-
-#localRanking:checked ~ #slides .inner { margin-left:0; }
-#globalRanking:checked ~ #slides .inner { margin-left:-100%; }
-#instruction:checked ~ #slides .inner { margin-left:200%; }
-#setting:checked ~ #slides .inner { margin-left:-300%; }
-
-#overflow {
+#slides {
+	position: relative;
+	top: 5%;
+	left: -330px;
+	margin: 45px 0 0;
+	padding: 1%;
 	width: 100%;
-	height: 100%;
-	overflow: hidden;
-}
-
-article img {
-	width: 100%;
+	height: 80%; 
+	background: -webkit-linear-gradient(top,  rgba(252,255,244,1) 0%,rgba(219,218,201,1) 100%);
+	-webkit-border-radius: 5px;
+	-webkit-box-shadow: 1px 1px 4px #666;
 }
 
 #slides .inner {
@@ -295,73 +364,111 @@ article img {
 }
 
 #slides article {
-	width: 20%;
+	width: 100%;
+	height: 100%;
+	position: absolute;
 	float: left;
 }
 
-/* Slider Styling */
-
-/* Control Setup */
-
-#controls {
-	margin: -25% 0 0 0;
+#overflow {
 	width: 100%;
-	height: 50px;
-	position: relative;
-	top: -600px;
+	height: 100%;
+	overflow: hidden;
 }
 
-#controls label { 
-	display: none;
-	width: 50px;
-	height: 50px;
-	opacity: 0.3;
+.info {
+	line-height: 20px;
+	margin: 0 0 -150%;
+	position: absolute;
+	padding: 30px 30px;
+	opacity: 0;
+	color: #000;
+	text-align: left;
+	overflow: auto;
 }
+
+div {
+	overflow: auto;
+}
+ 
+.info h3 {
+	color: #333;
+	margin: 0 0 5px;
+	font-size: 22px;
+	font-style: normal;
+}
+
+.info p {
+	color: #333;
+	margin: 0 0 5px 5px;
+	font-weight: normal;
+	font-size: 16px;
+	font-style: normal;
+}
+
 
 #active {
-	margin: 23% 0 0;
-	text-align: center;
 	position: relative;
-	top: -700px;
-	left: 33.25%;
+	top: 0%;
+	left: -110%;
+	margin: 23% 0 0;
+	width: 100%;
+	height: 10%;
+	text-align: center;
 }
 
 #active label {
-	-webkit-border-radius: 5px;
+	width: 50px;
+	height: 50px;
 	display: inline-block;
-	width: 10px;
-	height: 10px;
 	background: #bbb;
+	-webkit-border-radius: 5px;
 }
 
 #active label:hover {
 	background: #ccc;
-	border-color: #777 !important;
+	border-color: #777;
 }
 
-#controls label:hover {
-	opacity: 0.8;
+label, a {
+	color: teal;
+	cursor: pointer;
+	text-decoration: none;
 }
 
-#localRanking:checked ~ #controls label:nth-child(2), 
-#globalRanking:checked ~ #controls label:nth-child(3), 
-#instruction:checked ~ #controls label:nth-child(4), 
-#setting:checked ~ #controls label:nth-child(1) {
-	background: url('next.png') no-repeat;
-	float: right;
-	margin: 0 -70px 0 0;
-	display: block;
+label:hover, a:hover {
+	color: #000;
 }
 
+label, #active, img { -webkit-user-select:none; }
+.catch { display: block; height: 0; overflow: hidden; }
 
-#localRanking:checked ~ #controls label:nth-child(4),
-#globalRanking:checked ~ #controls label:nth-child(1),
-#instruction:checked ~ #controls label:nth-child(2),
-#setting:checked ~ #controls label:nth-child(3) {
-	background: url('prev.png') no-repeat;
-	float: left;
-	margin: 0 0 0 -70px;
-	display: block;
+#localRanking, #globalRanking, #instruction, #setting {
+	display: none;
+}
+
+article img {
+	width: 100%;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    background-color: black;
+    height: 2px;
+}
+ 
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    position: relative;
+    top: -1px;
+    z-index: 1;
+    width: 11px;
+    height: 11px;
+ 
+    -webkit-border-radius: 40px;
+    -moz-border-radius: 40px;
+    border-radius: 40px;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ebf1f6), color-stop(50%,#abd3ee), color-stop(51%,#89c3eb), color-stop(100%,#d5ebfb));
 }
 
 #localRanking:checked ~ #active label:nth-child(1),
@@ -369,62 +476,21 @@ article img {
 #instruction:checked ~ #active label:nth-child(3),
 #setting:checked ~ #active label:nth-child(4) {
 	background: #333;
-	border-color: #333 !important;
-}
-
-/* Info Box */
-
-.info {
-	line-height: 20px;
-	margin: 0 0 -150%;
-	position: absolute;
-	font-style: italic;
-	padding: 30px 30px;
-	opacity: 0;
-	color: #000;
-	text-align: left;
-}
-
-.info h3 {
-	color: #333;
-	margin: 0 0 5px;
-	font-weight: normal;
-	font-size: 22px;
-	font-style: normal;
-}
-
-/* Slider Styling */
-
-#slides {
-	margin: 45px 0 0;
-	-webkit-border-radius: 5px;
-	box-shadow: 1px 1px 4px #666;
-	position: relative;
-	top: -700px;
-	left: 67.5%/*700px*/;
-	padding: 1%;
-	width: 30%;
-	height: 50%; /* why % doesn't work??*/
-	background: -webkit-linear-gradient(top,  rgba(252,255,244,1) 0%,rgba(219,218,201,1) 100%);
+	border-color: #333;
 }
 
 
 /* Animation */
-
-#slides .inner {
-	-webkit-transform: translateZ(0);
-	-webkit-transition: all 800ms cubic-bezier(0.770, 0.000, 0.175, 1.000); 
-	-webkit-transition-timing-function: cubic-bezier(0.770, 0.000, 0.175, 1.000); 
-}
 
 #slider {
 	-webkit-transform: translateZ(0);
 	-webkit-transition: all 0.5s ease-out;
 }
 
-#controls label{
+#slides .inner {
 	-webkit-transform: translateZ(0);
-	-webkit-transition: opacity 0.2s ease-out;
+	-webkit-transition: all 800ms cubic-bezier(0.770, 0.000, 0.175, 1.000); 
+	-webkit-transition-timing-function: cubic-bezier(0.770, 0.000, 0.175, 1.000); 
 }
 
 #localRanking:checked ~ #slides article:nth-child(1) .info,
@@ -435,65 +501,16 @@ article img {
 	-webkit-transition: all 1s ease-out 0.6s;
 }
 
-.info, #controls, #slides, #active, #active label, .info h3 {
+.info, #slides, #active, #active label, .info h3 {
 	-webkit-transform: translateZ(0);
 	-webkit-transition: all 0.5s ease-out;
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	<article id = slider>
-		<!-- slider setup -->
-		<input checked type = radio name = slider id = localRanking selected = "false"/>
-		<input type = radio name = slider id = globalRanking selected = "false"/>
-		<input type = radio name = slider id = instruction selected = "false"/>
-		<input type = radio name = slider id = setting selected = "false"/>
-
-		<!-- the slider -->
-		<div id = slides>
-			<div id = overflow>
-				<div class = inner>
-					<article>
-						<div class = info>
-							<h3>Local High Score</h3>
-							<img src = "help.png" /> 					
-						</div>
-					</article>
-					<article>
-						<div class = info>
-							<h3>Global High Score</h3>
-							<img src = "restart.png" />
-						</div>
-					</article>
-					<article>
-						<div id = info>
-							<h3>Instruction</h3>
-							<img src = "instruction.png" />
-						</div>
-					</article>
-					<article>
-						<div class = info>
-							<h3>Setting</h3>
-							<img src = "setting.png" />
-						</div>
-					</article>
-				</div> <!-- inner -->
-			</div> <!-- overflow -->
-		</div> <!-- slides -->
-	
-		<!-- controls and active slide display -->
-		<div id = controls>
-			<label for = localRanking></label>
-			<label for = globalRanking></label>
-			<label for = instruction></label>
-			<label for = setting></label>	
-		</div>
-	
-		<div id = active>
-			<label for = localRanking></label>
-			<label for = globalRanking></label>
-			<label for = instruction></label>
-			<label for = setting></label>
-		</div>
-
-	</article>
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* document.body.addEventListener = function ("contextmenu", function() {return false;}); */ 
+document.getElementById("difficulty").addEventListener('click', newGame, false); 
+document.getElementById("size").addEventListener('click', newGame, false);
+document.getElementById("minRemove").addEventListener('click', newGame, false);
+document.getElementById("numColor").addEventListener('click', newGame, false);
+document.getElementById("nextOrb").addEventListener('click', newGame, false);
+document.getElementById("aniEffect").addEventListener('click', newGame, false);
+document.getElementById("restart").addEventListener('click', newGame, false);
