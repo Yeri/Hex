@@ -514,3 +514,322 @@ document.getElementById("numColor").addEventListener('click', newGame, false);
 document.getElementById("nextOrb").addEventListener('click', newGame, false);
 document.getElementById("aniEffect").addEventListener('click', newGame, false);
 document.getElementById("restart").addEventListener('click', newGame, false);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var removeByDestroyer = [];
+var removeByExploder = [];
+
+var checkOnLine = function (toBeRemove, hex) {
+	for (var i in toBeRemove) {
+		if (toBeRemove[i].center.x === hex.center.x && toBeRemove[i].center.y === hex.center.y) {
+			return true;
+		}
+	}
+	return false;	
+}
+
+var handleWild = function(originalHex) {
+  var nextHex, current, totalLineLength, curr;
+	var directionNames = ['up',
+	                      'down',
+	                      'leftUp',
+	                      'rightDown',
+	                      'leftDown',
+	                      'rightUp'
+	                     ];
+	var directions = [[], [], [], [], [], []];
+	var colourToMatch = [];
+	var toBeRemoved = [];
+	var adjacents = null;
+	scoreToAdd = [];
+	
+	for(var i = 0; i < 6; i++) { //for each direction
+	  //get the nextHex - returns false if you run off the board
+	  nextHex = getNext(directionNames[i], originalHex);
+	  while(nextHex) { //check if you ran off the board, or if there was no orb
+	    //if the next hex is wild, just push it and continue looking for a coloured hex
+      if(nextHex.orb.type === 'Wild') {
+        directions[i].push(nextHex);
+        //returns false if you run off the board & if the next square doesn't have an orb
+        nextHex = getNext(directionNames[i], nextHex);
+      } else {
+        break;
+      }
+    }
+	  //if you found a hex that wasn't wild, set the colour to match 
+	  //for this direction to be the colour of that orb
+	  if(nextHex) {
+	    colourToMatch[i] = nextHex.orb.colour;
+	    directions[i].push(nextHex); //push it onto the chain aswell
+	    nextHex = getNext(directionNames[i], nextHex); //get the next hex
+	    while(nextHex && checkColourMatch(colourToMatch[i], nextHex.orb.colour)) {
+	    //continue checking orbs in this direction until you run off the board,
+	    //you run into an empty hex, or the next orb doesn't match.
+	      directions[i].push(nextHex);  //push each matching orb
+	      nextHex = getNext(directionNames[i], nextHex); //get the next hex
+	    }
+	  } else { 
+	    if (directions[i].length > 0) {
+	       //if they were all wild and you ran off the board or came to an empty
+	       //spot you have a whole chain of wilds
+	      colourToMatch[i] = 'Wild';
+	    } else {
+	      //if you didn't find any hexes, there is no colour to match
+	      colourToMatch[i] = null;
+	    }
+	  }
+	}
+	
+/*At this point you have a stack of matching orbs for each direction, 
+  not including the original hex. The stacks can include wilds, as wilds match.
+  A stack may be all wilds. Each stack also has a variable set to the colour of
+  the stack - a stack of entirely wilds will be set to 'wild'.
+  If there were no hexes in any direction,
+  the colour to match for that direciton will be set to null */
+	
+  for(var i = 0; i < 6; i += 2) {
+	  if(checkColourMatch(colourToMatch[i], colourToMatch[i + 1])) {
+	    totalLineLength = directions[i].length + directions[i + 1].length + 1;
+	    if(totalLineLength >= game.minRemoveOrb) {
+	      scoreToAdd.push(totalLineLength);//score based on totalLineLength
+	      for(var j in directions[i]) {
+	        toBeRemoved.push(directions[i][j]);
+	      }
+	      for(var j in directions[i + 1]) {
+	        toBeRemoved.push(directions[i + 1][j]);
+	      }
+	    }	  
+	  } else {
+	    for(var j = i; j < i + 2; j++) {
+	      totalLineLength = directions[j].length + 1;
+        if(totalLineLength >= game.minRemoveOrb) {
+          scoreToAdd.push(totalLineLength);
+          for(var k in directions[j]) {
+            toBeRemoved.push(directions[j][k]);
+          }
+        }
+	    }
+	  } 
+	}
+	
+  for(var i in toBeRemoved) {
+    if(toBeRemoved[i].orb.type === 'Destroyer') {
+      for(var j in game.board.hexes) {
+        if(game.board.hexes[j].orb !== null) {
+          if(game.board.hexes[j].orb.colour === toBeRemoved[i].orb.colour && 
+!checkOnLine(toBeRemoved, game.board.hexes[j])) {
+            //toBeRemoved.push(game.board.hexes[j]);
+						removeByDestroyer.push(game.board.hexes[j]);						
+						game.board.hexes[j].orb.removeBy = 'Destroyer';
+          }
+        }
+      }
+    } else if(toBeRemoved[i].orb.type === 'Exploder') {
+      adjacents = toBeRemoved[i].getAdjacentHexes();
+      for(var j in adjacents) {
+        if(adjacents[j].orb !== null && !checkOnLine(toBeRemoved, adjacents[j])) {
+          //toBeRemoved.push(adjacents[j]);
+						removeByExploder.push(adjacents[j]);
+						adjacents[j].orb.removeBy = 'Exploder';
+        }
+      }
+    }	
+  }
+  
+  if(toBeRemoved.length > 0) {
+    toBeRemoved.push(originalHex);
+  }
+  return toBeRemoved;
+}
+
+
+var handleColoured = function(originalHex) {
+  var nextHex, current, totalLineLength, curr, isRemoved = false;
+	var directionNames = ['up',
+	                      'down',
+	                      'leftUp',
+	                      'rightDown',
+	                      'leftDown',
+	                      'rightUp'
+	                     ];
+	var directions = [[], [], [], [], [], []];
+	var toBeRemoved = [];
+	var adjacents = null;
+	scoreToAdd = [];
+	
+	for(var i = 0; i < 6; i++) { //for each direction
+	  //get the nextHex - returns false if you run off the board
+	  nextHex = getNext(directionNames[i], originalHex);
+    while(nextHex && checkOrbMatch(nextHex, originalHex)) {
+      //continue checking orbs in this direction until you run off the board,
+      //you run into an empty hex, or the next orb doesn't match.
+      directions[i].push(nextHex);  //push each matching orb
+      nextHex = getNext(directionNames[i], nextHex); //get the next hex
+	  }
+	}
+	
+/*At this point you have a stack of matching orbs for each direction, 
+  not including the original hex. The stacks can include wilds, as wilds match.
+  A stack may be all wilds.*/
+	
+  for(var i = 0; i < 6; i += 2) {
+    totalLineLength = directions[i].length + directions[i + 1].length + 1;
+    if(totalLineLength >= game.minRemoveOrb) {
+      scoreToAdd.push(totalLineLength);//score based on totalLineLength
+      for(var j in directions[i]) {
+        toBeRemoved.push(directions[i][j]);
+      }
+      for(var j in directions[i + 1]) {
+        toBeRemoved.push(directions[i + 1][j]);
+      }
+    }
+  } 
+	
+	if(toBeRemoved.length > 0) {
+	  toBeRemoved.push(originalHex);
+    for(var i in toBeRemoved) {
+      if(toBeRemoved[i].orb.type === 'Destroyer') {
+        for(var j in game.board.hexes) {
+          if(game.board.hexes[j].orb !== null) {
+            if(game.board.hexes[j].orb.colour === toBeRemoved[i].orb.colour && !checkOnLine(toBeRemoved, game.board.hexes[j])) {
+              //toBeRemoved.push(game.board.hexes[j]);
+							removeByDestroyer.push(game.board.hexes[j]);
+							game.board.hexes[j].orb.removeBy = 'Destroyer';
+            }
+          }
+        }
+      } else if(toBeRemoved[i].orb.type === 'Exploder') {
+        adjacents = toBeRemoved[i].getAdjacentHexes();
+        for(var j in adjacents) {
+          if(adjacents[j].orb !== null && !checkOnLine(toBeRemoved, adjacents[j])) {
+            //toBeRemoved.push(adjacents[j]);
+						removeByExploder.push(adjacents[j]);
+						adjacents[j].removeBy = 'Exploder';
+          }
+        }
+      }	
+    }
+  }
+  return toBeRemoved;
+}
+
+var checkMatch = function(current) {
+  var toBeRemoved;
+  if(current.orb.type === 'Wild') {
+    toBeRemoved = handleWild(current);
+  } else {
+    toBeRemoved = handleColoured(current);
+  }
+  return toBeRemoved;
+}
+
+var removeOrbs = function(toBeRemoved, score) {
+  var isRemoved = false; 
+  if(toBeRemoved.length > 0) {
+    isRemoved = true;
+  }
+  
+  for(var i = 0; i < toBeRemoved.length; i++) {
+	  toBeRemoved[i].orb = null;
+	}
+	
+	for (var i = removeByDestroyer.length - 1; i >= 0 ; i--) {
+		removeByDestroyer[i].orb = null;
+		removeByDestroyer.pop();
+	}
+
+	for (var i = removeByExploder.length - 1; i >= 0; i--) {
+		removeByExploder[i].orb = null;
+		removeByExploder.pop();
+	}
+	if(isRemoved) {
+	  game.score.updateScore(score);
+	}
+	
+	if(game.board.hasNoOrbs()) {//generate new orbs if the gameboard is empty
+	  placeOrbs(game.newOrbs);
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var removeAni = function() {
+	for (var i in removeAnimHexes) {
+		removeAnimHexes[i].orb.radius = HexConstant.ORB_RADIUS * (1 - (aniTime / timeLimit));
+	}
+	for (var i in removeByDestroyer) {
+		removeByDestroyer[i].orb.radius = HexConstant.ORB_RADIUS * (1 - (aniTime / timeLimit));
+	}
+	for (var i in removeByExploder) {
+		removeByExploder[i].orb.radius = HexConstant.ORB_RADIUS * (aniTime / timeLimit);
+	}
+}
+////////////////////////var Orb = function(colour, type) {
+  this.colour = colour;
+  this.type = type;
+  this.center = null;
+  this.radius = HexConstant.ORB_RADIUS;
+  this.img = new Image();
+  this.img.src = '' + this.colour + 'Logo_WhiteCenter.png';
+	this.removeBy = null;
+}
+
+Orb.prototype.draw = function(center, clicked, mouseOver) {
+
+  var fontSize = 36;
+
+	if (this.removeBy === 'Destroyer') {
+		ctx.beginPath();
+		ctx.arc(center.x, center.y, HexConstant.ORB_RADIUS, 0, 2 * Math.PI);
+		ctx.stroke();
+		ctx.fillStyle = 'black';
+		ctx.fill();
+		ctx.closePath();
+	}
+
+	if (this.removeBy === 'Exploder') {
+console.log("are you working?");
+  	ctx.drawImage(this.img, center.x - HexConstant.ORB_RADIUS, center.y - HexConstant.ORB_RADIUS,
+    	             HexConstant.ORB_RADIUS * 2, HexConstant.ORB_RADIUS * 2);
+  }
+
+	if (this.removeBy !== 'Exploder') {
+		console.log("not exploder");
+  	ctx.drawImage(this.img, center.x - this.radius, center.y - this.radius,
+    	             this.radius * 2, this.radius * 2);
+	} else {
+console.log("exploder");
+		ctx.beginPath();
+		ctx.arc(center.x, center.y, this.radius, 0, 2 * Math.PI);
+		ctx.stroke();
+		ctx.fillStyle = 'Red';
+		ctx.fill();
+		ctx.closePath();
+	}
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, this.radius, 0, 2 * Math.PI);
+  if(clicked || mouseOver) {
+    ctx.lineWidth = 5;
+  } else {
+    ctx.lineWidth = 2;
+  }
+  ctx.stroke();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'Black';
+  //if this orb is shrinking, shrink it's text also
+  if (this.radius !== HexConstant.ORB_RADIUS) {
+    fontSize = fontSize * (1 - aniTime / timeLimit);
+  }
+  ctx.font = 'normal ' + fontSize + 'px Verdana';
+  if(this.type === 'Exploder') {
+    ctx.fillText('E', center.x, center.y);
+  } else if (this.type === 'Destroyer') {
+    ctx.fillText('D', center.x, center.y);
+  }
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
