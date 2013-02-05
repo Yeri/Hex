@@ -706,7 +706,7 @@ var handleColoured = function(originalHex) {
           if(adjacents[j].orb !== null && !checkOnLine(toBeRemoved, adjacents[j])) {
             //toBeRemoved.push(adjacents[j]);
 						removeByExploder.push(adjacents[j]);
-						adjacents[j].removeBy = 'Exploder';
+						adjacents[j].orb.removeBy = 'Exploder';
           }
         }
       }	
