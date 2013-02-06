@@ -131,4 +131,337 @@ var drawHexGrid = function(ctx, numColumns) {
 */
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+var Score = function () {
+	this.currentScore = 0;
+	this.removeCounter = 0;
+}
+
+Score.prototype.updateScore = function (scoreToAdd) {
+	var numDirection = scoreToAdd.length;
+
+	for(var i = 0; i < numDirection; i++) {
+		if (this.removeCounter === 0) {
+			Main.game.score.currentScore += 10 * Math.pow(2, scoreToAdd[i] - 
+				Main.game.minRemoveOrb);
+		} else {
+			Main.game.score.currentScore += 10 * Math.pow(2, scoreToAdd[i] - 
+				Main.game.minRemoveOrb) * Math.pow(2, this.removeCounter);
+		}
+	}
+	
+	for(var i = 2; i <= numDirection; i++) {
+	  Main.game.score.currentScore += 50;
+	}
+}
+
+Score.prototype.displayScore = function() {
+	Main.ctx.strokeStyle = "#000000";
+	Main.ctx.strokeRect(Main.canvas.width * 0.67, Main.canvas.height * 0.01, 
+		Main.canvas.width * 0.31, 40);
+	Main.ctx.font = "20px" + "Arial";	
+	Main.ctx.fillStyle = "#000000";
+	Main.ctx.fillText(this.currentScore.toString(),
+	            Main.canvas.width - Hex.EDGE_LENGTH * 2, 30); 
+	this.displayCounter();
+}
+
+Score.prototype.drawCounterBox = function (x, y, w, h, radius) {
+  var r = x + w;
+  var b = y + h;
+  Main.ctx.beginPath();
+  Main.ctx.strokeStyle="black";
+  Main.ctx.lineWidth="2";
+  Main.ctx.moveTo(x+radius, y); // hook position
+  Main.ctx.lineTo(x+radius/2, y-10); // hook position
+  Main.ctx.lineTo(x+radius * 2, y); // hook position
+  Main.ctx.lineTo(r-radius, y); // hook position
+  Main.ctx.quadraticCurveTo(r, y, r, y+radius);
+  Main.ctx.lineTo(r, y+h-radius);
+  Main.ctx.quadraticCurveTo(r, b, r-radius, b);
+  Main.ctx.lineTo(x+radius, b);
+  Main.ctx.quadraticCurveTo(x, b, x, b-radius);
+  Main.ctx.lineTo(x, y+radius);
+  Main.ctx.quadraticCurveTo(x, y, x+radius, y);
+  Main.ctx.stroke();
+	Main.ctx.fillStyle = 'Red';
+	Main.ctx.fill();
+}
+
+Score.prototype.displayCounter = function() {
+	if (this.removeCounter > 0) {
+		var fontSize = 35 + this.removeCounter * 0.5;  
+		var grd= Main.ctx.createLinearGradient(0, 0, 0.1, 50);
+		this.drawCounterBox(Main.canvas.width * 0.68, 10, Main.canvas.width * 0.07, 35, 5);
+		grd.addColorStop(0,"#000000");
+		grd.addColorStop(0.3, "magenta");
+		grd.addColorStop(0.5, "blue");
+		grd.addColorStop(0.6, "green");
+		grd.addColorStop(0.8, "yellow");
+		grd.addColorStop(1,"red");
+		Main.ctx.strokeStyle = grd;
+		if (fontSize < 40) {
+			Main.ctx.font = fontSize + 'px Arial';
+		} else {
+			Main.ctx.font = '40px Arial';
+		}
+		Main.ctx.strokeText('x' + this.removeCounter.toString(), Main.canvas.width * 0.72, 30); 
+	}
+}
+
+var saveScores = function(newScore) {
+  chrome.storage.sync.get(null, function(storage) {               
+    var insertSpot = 10;
+    for(var i = storage.chromeLinesHighScores.length - 1; i >= 0; i--) {
+      if(newScore > storage.chromeLinesHighScores[i]) {
+        insertSpot--;
+      } else {
+        break;
+      }
+    }
+    
+    var scoresAboveNewScore = storage.chromeLinesHighScores.slice(0, insertSpot);
+    var scoresBelowNewScore = storage.chromeLinesHighScores.slice(insertSpot,
+                                          storage.chromeLinesHighScores.length);
+    scoresBelowNewScore.unshift(newScore);
+    var newHighScores = scoresAboveNewScore.concat(scoresBelowNewScore);
+    newHighScores.length = 10;
+    chrome.storage.sync.set({'chromeLinesHighScores': newHighScores});      
+  });
+}
+
+var initialiseHighScores = function() {
+  var chromeLinesHighScores = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                               
+  chrome.storage.sync.get(null, function(storage) {
+    //if the highScore list is not initialised yet, initialise it
+    if(storage.chromeLinesHighScores === undefined) {
+       chrome.storage.sync.set({'chromeLinesHighScores': chromeLinesHighScores});
+    }
+  });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+////////////// Setup the main game loop ///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+var runAnim = function() {
+  window.webkitRequestAnimationFrame(runAnim);
+  update();
+	draw();
+}
+
+var draw = function() {
+  if(animating !== 'end') {
+    Main.game.drawGame();
+  }
+  displayLocalScoreBoard();
+}
+
+var update = function() {	
+	if (lastTime === null) {  //first time update is called
+		dt = 0;
+	} else {
+	  var now = new Date().getTime(); 
+		dt = now - lastTime;
+	}
+	lastTime = now;
+	aniTime += dt;
+	switch (animating) {
+		case 'path':  
+		  if(aniTime <= timeLimit) {  //check if you are still displaying path
+				if(displayAnimations()){
+				  stepPathAnim();
+				} else {
+				  aniTime = timeLimit;
+				}
+		  } else {
+		    endPathAnim();
+			}
+			break;
+		case 'remove':
+			if(aniTime <= timeLimit) { //check if you are still displaying removing orbs
+				if(displayAnimations()){
+				  stepRemoveAnim();
+				} else {
+				  aniTime = timeLimit;
+				}
+			} else {
+			  endRemoveAnim(); 
+			}
+			break;
+		case 'newOrb':
+			if(aniTime <= timeLimit) {
+				if(displayAnimations() && displayNewOrbs()){
+				  stepNewOrbAnim();
+				} else {
+				  aniTime = timeLimit;
+				}
+			} else {
+			  endNewOrbAnim();
+			}
+			break;
+		case 'end':
+			if (aniTime <= timeLimit) {
+				if(displayAnimations()){
+				  stepEndGameAnim();
+				} else {
+				  aniTime = timeLimit;
+				}
+			} else {
+				if (displayAnimations()) {
+					endEndGameAnim();
+				}
+			}
+			break;
+		default:
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/////// Animating the path of orbs as they move around the board //////////////
+///////////////////////////////////////////////////////////////////////////////
+
+var startPathAnim = function(orb, route) {
+	animating = 'path';
+	aniTime = 0;
+	switch (getAniSpeed()) {
+		case 0:
+			timeLimit = (route.length - 1) * 500;
+			break;
+		case 1:
+			timeLimit = (route.length - 1) * 200;
+			break;
+		case 2:
+			timeLimit = (route.length - 1) * 50;
+			break;
+	}
+	pathAnimOrb = orb;
+}
+
+var stepPathAnim = function() {
+	var curr = new Pixel(null, null);
+	var dist = (aniTime / timeLimit) * (route.length - 1);
+
+	from = Math.floor(dist);//hex index for current starting position
+	to = from + 1;
+	if (to < route.length) {
+		var rate = dist - from;
+	  if (from >= 0) {
+		  curr.x = route[from].center.x * (1 - rate) + route[to].center.x * rate;
+		  curr.y = route[from].center.y * (1 - rate) + route[to].center.y * rate;
+	  }
+	}
+	
+	pathAnimOrb.setCenter(curr);
+}
+
+var endPathAnim = function() {
+  from = null;
+  Main.game.destinationHex.orb.center = Main.game.destinationHex.center;
+  pathAnimOrb = null;
+  var toBeRemoved = checkForMatchingLines(Main.game.destinationHex);
+  if(toBeRemoved.length > 0) {
+    startRemoveAnim(toBeRemoved, scoreToAdd);
+  } else {
+		Main.game.score.removeCounter = 0;
+		Main.game.placeNewOrbs();
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+////////////// Animating orbs as they are removed from the board //////////////
+///////////////////////////////////////////////////////////////////////////////
+
+var startRemoveAnim = function(toBeRemoved, score) {
+  animating = 'remove';
+	aniTime = 0;
+	switch (getAniSpeed()) {
+		case 0:
+			timeLimit = 1500;
+			break;
+		case 1:
+			timeLimit = 800;
+			break;
+		case 2:
+			timeLimit = 300;
+			break;
+	}
+  removeAnimHexes = toBeRemoved;
+  removeScore = score;
+}
+
+var stepRemoveAnim = function() {
+	for (var i in removeAnimHexes) {
+		removeAnimHexes[i].orb.radius = Hex.ORB_RADIUS * (1 - (aniTime / timeLimit));
+	}
+}
+
+var endRemoveAnim = function() {
+  animating = 'regular';
+  removeOrbs(removeAnimHexes, removeScore);  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+////////////// Animating new orbs as they enter the board /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+var startNewOrbAnim = function() {
+  animating = 'newOrb';
+  aniTime = 0;
+  switch (getAniSpeed()) {
+		case 0:
+			timeLimit = 1200;
+			break;
+		case 1:
+			timeLimit = 800;
+			break;
+		case 2:
+			timeLimit = 400;
+			break;
+	}
+}
+
+var stepNewOrbAnim = function() {
+  for(var i = 0; i < Main.game.numNewOrbs; i++) {
+    var dist = (aniTime / timeLimit);
+    var x = Main.game.newOrbPos[i].x * (1 - dist) + Main.game.newOrbHexes[i].center.x * dist;
+    var y = Main.game.newOrbPos[i].y * (1 - dist) + Main.game.newOrbHexes[i].center.y * dist;
+		Main.game.newOrbs[i].center = new Pixel(x,y);
+	}				
+}
+
+var endNewOrbAnim = function() {
+  animating = 'regular';
+  for(var i = 0; i < Main.game.numNewOrbs; i++) {
+    Main.game.newOrbs[i].center = Main.game.newOrbHexes[i].center;
+  }
+  Main.game.generateNewOrbs();
+  Main.game.checkIfNewOrbsMadeMatches();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+////////////// End game animation /////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+var startEndGameAnim = function() {
+  animating = 'end';
+  aniTime = 0;
+  timeLimit = 50000;
+}
+
+var stepEndGameAnim = function() {
+  var time = new Date().getTime() * 0.01;
+  var x = Math.sin(time) * 325 + Main.canvas.width * 0.65 / 2 - 10;
+  var y = Math.cos(time * 0.9) * 350 + Main.canvas.height / 2;
+	var img = new Image();
+	img.src = 'WildLogo.png';
+	Main.ctx.drawImage(img, x, y, Hex.ORB_RADIUS * 2, Hex.ORB_RADIUS * 2);			
+}
+
+var endEndGameAnim = function() {
+  animating = 'regular';
+  resetGame();
+}
 
